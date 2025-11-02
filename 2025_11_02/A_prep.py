@@ -14,52 +14,57 @@ OUT_DIR   = os.path.join(curr_path, "output")
 train_path = os.path.join(DATA_DIR, "train")
 trainA = os.path.join(train_path, "A.csv")
 
+print(f"trainA loading...")
 start = time.time()
 trainA = pd.read_csv(trainA)
 end = time.time()
-print(f"trainA loading : {end - start:.5f} sec")
+print(f"trainA loading complete : {end - start:.5f} sec")
 
 
 
 pp = PreprocessA(trainA)
 
+print(f"A1 featurizing...")
 start = time.time()
-A1_split = pp.A1_parse_and_split()
-A1_feat = pp.A1_features(A1_split, mode = 'mu_sigma')
+A1_feat = pp.A1_features_fast(mode='mu_sigma')   # 또는 'mu', 'mu_range'
 end = time.time()
-print(f"A1_feat {end - start:.5f} sec")
+print(f"A1 featurizing complete {end - start:.5f} sec")
 
+print(f"A2 featurizing...")
 start = time.time()
-A2_split = pp.A2_parse_and_split()
-A2_feat = pp.A2_features(A2_split, mode = 'mu_sigma')
+A2_feat = pp.A2_features_fast(mode='mu_sigma')
 end = time.time()
-print(f"A2_feat {end - start:.5f} sec")
+print(f"A2 featurizing complete {end - start:.5f} sec")
 
+print(f"A3 featurizing...")
 start = time.time()
-A3_split = pp.A3_parse_and_split()
-A3_feat = pp.A3_features(A3_split, mode = 'mu_sigma')
+A3_feat = pp.A3_features_fast(mode='mu_sigma')
 end = time.time()
-print(f"A3_feat {end - start:.5f} sec")
+print(f"A3 featurizing complete {end - start:.5f} sec")
 
+print(f"A4 featurizing...")
 start = time.time()
-A4_split = pp.A4_parse_and_split()
-A4_feat = pp.A4_features(A4_split, mode = 'mu_sigma')
+A4_feat = pp.A4_features_fast(mode='mu_sigma')
 end = time.time()
-print(f"A4_feat {end - start:.5f} sec")
+print(f"A4 featurizing complete {end - start:.5f} sec")
 
+print(f"A5 featurizing...")
 start = time.time()
-A5_split = pp.A5_parse_and_split()
-A5_feat = pp.A5_features(A5_split, mode = 'mu_sigma')
+A5_feat = pp.A5_features_fast()
 end = time.time()
-print(f"A5_feat {end - start:.5f} sec")
+print(f"A5 featurizing complete {end - start:.5f} sec")
 
+print(f"A6, A7 featurizing...")
 start = time.time()
-A6_7_split = pp.A6_7_parse_and_split()
-A6_7_feat = pp.A6_7_features(A6_7_split, mode = 'mu_sigma')
+A6_7_feat = pp.A6_7_features_fast()
 end = time.time()
-print(f"A6_7_feat {end - start:.5f} sec")
+print(f"A6, A7 featurizing complete {end - start:.5f} sec")
 
+print(f"A8, A9 featurizing...")
+start = time.time()
 A8_9_feat = pp.A8_9_features()
+end = time.time()
+print(f"A8, A9 featurizing complete {end - start:.5f} sec")
 
 # feature DataFrame들을 리스트로 묶기
 feat_list = [A1_feat, A2_feat, A3_feat, A4_feat, A5_feat]
@@ -101,7 +106,7 @@ final_df = pd.concat(dfs, axis=1)
 
 # --- 저장 ---
 # os.makedirs(OUT_DIR, exist_ok=True)
-out_path = os.path.join(DATA_DIR, "trainA_processed.csv")
+out_path = os.path.join(DATA_DIR, "trainA_processed_fast.csv")
 final_df.to_csv(out_path, index=False, encoding='utf-8-sig')
 
 print(f"[OK] Saved: {out_path}")
