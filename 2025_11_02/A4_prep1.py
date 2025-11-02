@@ -44,10 +44,12 @@ class Preprocess:
         self.A1_cols = ['A1-1', 'A1-2', 'A1-3', 'A1-4']
         self.A2_cols = ['A2-1', 'A2-2', 'A2-3', 'A2-4']
         self.A3_cols = ['A3-1', 'A3-2', 'A3-3', 'A3-4', 'A3-5', 'A3-6', 'A3-7']
+        self.A4_cols = ['A4-1','A4-2','A4-3','A4-4','A4-5']
         # 존재 확인(없으면 KeyError)
         _ = self.df[self.A1_cols]
         _ = self.df[self.A2_cols]
         _ = self.df[self.A3_cols]
+        _ = self.df[self.A4_cols]
 
 
         pass
@@ -455,10 +457,151 @@ class Preprocess:
         # )
 
         return out
+    
+    # ================== Preprocess methods ==================
+    # assume you already have: self._to_array(val, dtype) in your class
+
+    def A4_parse_and_split_row(self, row: pd.Series) -> pd.Series:
+        """
+        A4-1: 1=congruent, 2=incongruent
+        A4-2: 1=red, 2=green
+        A4-3: 1=correct,  2=incorrect
+        A4-4: 0=N(normal), 1=Y(abnormal)
+        A4-5: response time
+        """
+        a4_1 = self._to_array(row['A4-1'], dtype=int)
+        a4_2 = self._to_array(row['A4-2'], dtype=int)
+        a4_3 = self._to_array(row['A4-3'], dtype=int)
+        a4_4 = self._to_array(row['A4-4'], dtype=int)
+        a4_5 = self._to_array(row['A4-5'], dtype=float)
+
+        n = len(a4_5)
+
+        is_con    = (a4_1 == 1)
+        is_incon  = (a4_1 == 2)
+        is_red    = (a4_2 == 1)
+        is_green  = (a4_2 == 2)
+        is_corr   = (a4_3 == 1)
+        is_incorr    = (a4_3 == 2)
+        is_abn    = (a4_4 == 1)
+
+        # # RT lists (all trials)
+        # rt_con_red_all    = a4_5[is_con   & is_red].tolist()
+        # rt_incon_red_all  = a4_5[is_incon & is_red].tolist()
+        # rt_con_green_all  = a4_5[is_con   & is_green].tolist()
+        # rt_incon_green_all= a4_5[is_incon & is_green].tolist()
+
+        # RT lists (correct-only)
+        rt_con_red_corr    = a4_5[is_con   & is_red   & is_corr].tolist()
+        rt_incon_red_corr  = a4_5[is_incon & is_red   & is_corr].tolist()
+        rt_con_green_corr  = a4_5[is_con   & is_green & is_corr].tolist()
+        rt_incon_green_corr= a4_5[is_incon & is_green & is_corr].tolist()
+        # 색상 통합(일치/불일치별)
+        rt_congruent_corr    = a4_5[is_con   & is_corr].tolist()
+        rt_incongruent_corr  = a4_5[is_incon & is_corr].tolist()
+        # 전체 정답 RT
+        rt_correct_all       = a4_5[is_corr].tolist()
+        
+        # Response1 정답 마스크(정확도 계산용; 1=correct, 0=incorrect)
+        res_con_red      = (a4_3[is_con   & is_red]   == 1).astype(int).tolist()
+        res_incon_red    = (a4_3[is_incon & is_red]   == 1).astype(int).tolist()
+        res_con_green    = (a4_3[is_con   & is_green] == 1).astype(int).tolist()
+        res_incon_green  = (a4_3[is_incon & is_green] == 1).astype(int).tolist()
+        
+        # counts for accs and error stats
+        # n_con, n_incon     = int(is_con.sum()), int(is_incon.sum())
+        # n_red, n_green     = int(is_red.sum()), int(is_green.sum())
+        n_corr, n_incorr   = int(is_corr.sum()), int(is_incorr.sum())
+        n_abnormal         = int(is_abn.sum())
+        n_con_red         = int((is_con & is_red).sum())
+        n_incon_red       = int((is_incon & is_red).sum())
+        n_con_green         = int((is_con & is_green).sum())
+        n_incon_green       = int((is_incon & is_green).sum())
+        n_con_red_corr         = int((is_con & is_red & is_corr).sum())
+        n_incon_red_corr       = int((is_incon & is_red & is_corr).sum())
+        n_con_green_corr         = int((is_con & is_green & is_corr).sum())
+        n_incon_green_corr       = int((is_incon & is_green & is_corr).sum())
+
+        return pd.Series({
+            # RT lists (cell-level, correct-only)
+            'rt_con_red_corr':     rt_con_red_corr,
+            'rt_incon_red_corr':   rt_incon_red_corr,
+            'rt_con_green_corr':   rt_con_green_corr,
+            'rt_incon_green_corr': rt_incon_green_corr,
+            # aggregated RT lists
+            'rt_congruent_corr':   rt_congruent_corr,
+            'rt_incongruent_corr': rt_incongruent_corr,
+            'rt_correct_all':      rt_correct_all,
+
+            # correctness masks per cell (for accuracy via mean)
+            'res_con_red':     res_con_red,
+            'res_incon_red':   res_incon_red,
+            'res_con_green':   res_con_green,
+            'res_incon_green': res_incon_green,
+
+            # counts
+            'n_trials': n,
+            'n_correct': n_corr,
+            'n_incorrect': n_incorr,
+            'n_abnormal': n_abnormal,
+            'n_con_red_corr':     n_con_red_corr,
+            'n_incon_red_corr':   n_incon_red_corr,
+            'n_con_green_corr':   n_con_green_corr,
+            'n_incon_green_corr': n_incon_green_corr,
+            'con_red_corr_ratio':     (n_con_red_corr / n_con_red),
+            'incon_red_corr_ratio':   (n_incon_red_corr / n_incon_red),
+            'con_green_corr_ratio':   (n_con_green_corr / n_con_green),
+            'incon_green_corr_ratio': (n_incon_green_corr / n_incon_green)
+        })
+
+
+    def A4_parse_and_split(self) -> pd.DataFrame:
+        return self.df[self.A4_cols].apply(self.A4_parse_and_split_row, axis=1)
+
+
+    def A4_features(self, df_split: pd.DataFrame,
+                    cols: Optional[List[str]] = None,
+                    mode: str = 'mu_sigma',                    
+                    include_color_rt: bool = True) -> pd.DataFrame:
+        """
+        Core 8–10 features for A4 (selective attention):
+        - acc_congruent, acc_incongruent, acc_diff
+        - rt_congruent_mu, rt_incongruent_mu, rt_diff, rt_ratio
+        - n_incorrect, n_abnormal
+        - (optional) rt_red_mu, rt_green_mu
+        - (bonus) rt_stability (correct trials)
+        """
+        if cols is None:
+            cols1 = ['n_con_red_corr', 'n_incon_red_corr', 'n_con_green_corr', 'n_incon_green_corr',
+                     'con_red_corr_ratio', 'incon_red_corr_ratio', 'con_green_corr_ratio', 'incon_green_corr_ratio']
+            cols2 = ['rt_con_red_corr', 'rt_incon_red_corr', 'rt_con_green_corr',
+                    'rt_incon_green_corr', 'rt_congruent_corr',
+                    'rt_incongruent_corr', 'rt_correct_all']
+
+        out = pd.DataFrame(index=df_split.index)
+
+        # errors / abnormal
+        out['n_incorrect'] = df_split['n_incorrect']
+        out['n_abnormal']  = df_split['n_abnormal']
+
+        # (2) 6셀 RT 리스트 요약 (각 리스트 -> 스칼라 1개)
+        for c in cols1:
+            out[c] = df_split[c]
+        for c in cols2:
+            out[c + f'_{mode}'] = df_split[c].apply(self._summarize_list, mode=mode)
+            
+        
+            
+        return out    
+    
 
 A_test = Asample[:5]
 # print(A_test)
 # print(A_test.shape)
+
+print(A_test['A4-3'])
+print(A_test['A4-4'])
+
 
 pp = Preprocess(A_test)
 
@@ -468,8 +611,16 @@ A2_feat = pp.A2_features(A2_split, mode = 'mu_sigma')
 A3_split = pp.A3_parse_and_split()
 A3_feat = pp.A3_features(A3_split, mode = 'mu_sigma')
 
-print(A2_split.head())
-print(A2_feat.head())
+A4_split = pp.A4_parse_and_split()
+A4_feat = pp.A4_features(A4_split, mode = 'mu_sigma')
+
+print(A4_split.head())
+print(A4_feat.head())
+
+
+
+
+
 
 
 

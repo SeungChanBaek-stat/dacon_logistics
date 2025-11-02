@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import os
+import os, re
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, QuantileTransformer
 from typing import List, Optional
 
@@ -44,10 +44,16 @@ class Preprocess:
         self.A1_cols = ['A1-1', 'A1-2', 'A1-3', 'A1-4']
         self.A2_cols = ['A2-1', 'A2-2', 'A2-3', 'A2-4']
         self.A3_cols = ['A3-1', 'A3-2', 'A3-3', 'A3-4', 'A3-5', 'A3-6', 'A3-7']
+        self.A4_cols = ['A4-1','A4-2','A4-3','A4-4','A4-5']
+        self.A5_cols = ['A5-1','A5-2','A5-3']
+        self.A6_7_cols = ['A6-1', 'A7-1']
         # 존재 확인(없으면 KeyError)
         _ = self.df[self.A1_cols]
         _ = self.df[self.A2_cols]
         _ = self.df[self.A3_cols]
+        _ = self.df[self.A4_cols]
+        _ = self.df[self.A5_cols]
+        _ = self.df[self.A6_7_cols]
 
 
         pass
@@ -455,12 +461,307 @@ class Preprocess:
         # )
 
         return out
+    
+    # ================== Preprocess methods ==================
+    # assume you already have: self._to_array(val, dtype) in your class
+
+    def A4_parse_and_split_row(self, row: pd.Series) -> pd.Series:
+        """
+        A4-1: 1=congruent, 2=incongruent
+        A4-2: 1=red, 2=green
+        A4-3: 1=correct,  2=incorrect
+        A4-4: 0=N(normal), 1=Y(abnormal)
+        A4-5: response time
+        """
+        a4_1 = self._to_array(row['A4-1'], dtype=int)
+        a4_2 = self._to_array(row['A4-2'], dtype=int)
+        a4_3 = self._to_array(row['A4-3'], dtype=int)
+        a4_4 = self._to_array(row['A4-4'], dtype=int)
+        a4_5 = self._to_array(row['A4-5'], dtype=float)
+
+        n = len(a4_5)
+
+        is_con    = (a4_1 == 1)
+        is_incon  = (a4_1 == 2)
+        is_red    = (a4_2 == 1)
+        is_green  = (a4_2 == 2)
+        is_corr   = (a4_3 == 1)
+        is_incorr    = (a4_3 == 2)
+        is_abn    = (a4_4 == 1)
+
+        # # RT lists (all trials)
+        # rt_con_red_all    = a4_5[is_con   & is_red].tolist()
+        # rt_incon_red_all  = a4_5[is_incon & is_red].tolist()
+        # rt_con_green_all  = a4_5[is_con   & is_green].tolist()
+        # rt_incon_green_all= a4_5[is_incon & is_green].tolist()
+
+        # RT lists (correct-only)
+        rt_con_red_corr    = a4_5[is_con   & is_red   & is_corr].tolist()
+        rt_incon_red_corr  = a4_5[is_incon & is_red   & is_corr].tolist()
+        rt_con_green_corr  = a4_5[is_con   & is_green & is_corr].tolist()
+        rt_incon_green_corr= a4_5[is_incon & is_green & is_corr].tolist()
+        # 색상 통합(일치/불일치별)
+        rt_congruent_corr    = a4_5[is_con   & is_corr].tolist()
+        rt_incongruent_corr  = a4_5[is_incon & is_corr].tolist()
+        # 전체 정답 RT
+        rt_correct_all       = a4_5[is_corr].tolist()
+        
+        # Response1 정답 마스크(정확도 계산용; 1=correct, 0=incorrect)
+        res_con_red      = (a4_3[is_con   & is_red]   == 1).astype(int).tolist()
+        res_incon_red    = (a4_3[is_incon & is_red]   == 1).astype(int).tolist()
+        res_con_green    = (a4_3[is_con   & is_green] == 1).astype(int).tolist()
+        res_incon_green  = (a4_3[is_incon & is_green] == 1).astype(int).tolist()
+        
+        # counts for accs and error stats
+        # n_con, n_incon     = int(is_con.sum()), int(is_incon.sum())
+        # n_red, n_green     = int(is_red.sum()), int(is_green.sum())
+        n_corr, n_incorr   = int(is_corr.sum()), int(is_incorr.sum())
+        n_abnormal         = int(is_abn.sum())
+        n_con_red         = int((is_con & is_red).sum())
+        n_incon_red       = int((is_incon & is_red).sum())
+        n_con_green         = int((is_con & is_green).sum())
+        n_incon_green       = int((is_incon & is_green).sum())
+        n_con_red_corr         = int((is_con & is_red & is_corr).sum())
+        n_incon_red_corr       = int((is_incon & is_red & is_corr).sum())
+        n_con_green_corr         = int((is_con & is_green & is_corr).sum())
+        n_incon_green_corr       = int((is_incon & is_green & is_corr).sum())
+
+        return pd.Series({
+            # RT lists (cell-level, correct-only)
+            'rt_con_red_corr':     rt_con_red_corr,
+            'rt_incon_red_corr':   rt_incon_red_corr,
+            'rt_con_green_corr':   rt_con_green_corr,
+            'rt_incon_green_corr': rt_incon_green_corr,
+            # aggregated RT lists
+            'rt_congruent_corr':   rt_congruent_corr,
+            'rt_incongruent_corr': rt_incongruent_corr,
+            'rt_correct_all':      rt_correct_all,
+
+            # correctness masks per cell (for accuracy via mean)
+            'res_con_red':     res_con_red,
+            'res_incon_red':   res_incon_red,
+            'res_con_green':   res_con_green,
+            'res_incon_green': res_incon_green,
+
+            # counts
+            'n_trials': n,
+            'n_correct': n_corr,
+            'n_incorrect': n_incorr,
+            'n_abnormal': n_abnormal,
+            'n_con_red_corr':     n_con_red_corr,
+            'n_incon_red_corr':   n_incon_red_corr,
+            'n_con_green_corr':   n_con_green_corr,
+            'n_incon_green_corr': n_incon_green_corr,
+            'con_red_corr_ratio':     (n_con_red_corr / n_con_red),
+            'incon_red_corr_ratio':   (n_incon_red_corr / n_incon_red),
+            'con_green_corr_ratio':   (n_con_green_corr / n_con_green),
+            'incon_green_corr_ratio': (n_incon_green_corr / n_incon_green)
+        })
+
+
+    def A4_parse_and_split(self) -> pd.DataFrame:
+        return self.df[self.A4_cols].apply(self.A4_parse_and_split_row, axis=1)
+
+
+    def A4_features(self, df_split: pd.DataFrame,
+                    cols: Optional[List[str]] = None,
+                    mode: str = 'mu_sigma',                    
+                    include_color_rt: bool = True) -> pd.DataFrame:
+        """
+        Core 8–10 features for A4 (selective attention):
+        - acc_congruent, acc_incongruent, acc_diff
+        - rt_congruent_mu, rt_incongruent_mu, rt_diff, rt_ratio
+        - n_incorrect, n_abnormal
+        - (optional) rt_red_mu, rt_green_mu
+        - (bonus) rt_stability (correct trials)
+        """
+        if cols is None:
+            cols1 = ['n_con_red_corr', 'n_incon_red_corr', 'n_con_green_corr', 'n_incon_green_corr',
+                     'con_red_corr_ratio', 'incon_red_corr_ratio', 'con_green_corr_ratio', 'incon_green_corr_ratio']
+            cols2 = ['rt_con_red_corr', 'rt_incon_red_corr', 'rt_con_green_corr',
+                    'rt_incon_green_corr', 'rt_congruent_corr',
+                    'rt_incongruent_corr', 'rt_correct_all']
+
+        out = pd.DataFrame(index=df_split.index)
+
+        # errors / abnormal
+        out['n_incorrect'] = df_split['n_incorrect']
+        out['n_abnormal']  = df_split['n_abnormal']
+
+        # (2) 6셀 RT 리스트 요약 (각 리스트 -> 스칼라 1개)
+        for c in cols1:
+            out[c] = df_split[c]
+        for c in cols2:
+            out[c + f'_{mode}'] = df_split[c].apply(self._summarize_list, mode=mode)
+            
+        
+            
+        return out    
+    
+    
+    def A5_parse_and_split_row(self, row: pd.Series) -> pd.Series:
+        """
+        A5-1: Condition (1=non-change, 2=pos-change, 3=color-change, 4=shape-change)
+        A5-2: Response1 (1=correct, 2=incorrect)
+        A5-3: Response2 (0=N(normal), 1=Y(abnormal))
+        """
+        a5_1 = self._to_array(row['A5-1'], dtype=int)
+        a5_2 = self._to_array(row['A5-2'], dtype=int)
+        a5_3 = self._to_array(row['A5-3'], dtype=int)
+
+        n = len(a5_1)  # 36 예정
+
+        is_non   = (a5_1 == 1)
+        is_pos   = (a5_1 == 2)
+        is_color = (a5_1 == 3)
+        is_shape = (a5_1 == 4)
+
+        is_corr  = (a5_2 == 1)
+        is_inc   = (a5_2 == 2)
+        is_abn   = (a5_3 == 1)
+
+        # 카운트
+        n_non   = int(is_non.sum())
+        n_pos   = int(is_pos.sum())
+        n_color = int(is_color.sum())
+        n_shape = int(is_shape.sum())
+        
+        n_non_corr   = int((a5_2[is_non]   == 1).sum())
+        n_pos_corr   = int((a5_2[is_pos]   == 1).sum())
+        n_color_corr = int((a5_2[is_color] == 1).sum())
+        n_shape_corr = int((a5_2[is_shape] == 1).sum())
+
+        n_corr   = int(is_corr.sum())
+        n_inc    = int(is_inc.sum())
+        n_abnorm = int(is_abn.sum())
+
+        return pd.Series({
+            # counts
+            'n_trials': n,
+            'n_non': n_non, 'n_pos': n_pos, 'n_color': n_color, 'n_shape': n_shape,
+            'n_non_corr': n_non_corr, 'n_pos_corr': n_pos_corr, 'n_color_corr': n_color_corr, 'n_shape_corr': n_shape_corr,
+            'n_correct': n_corr, 'n_incorrect': n_inc, 'n_abnormal': n_abnorm,
+        })
+
+
+    def A5_parse_and_split(self) -> pd.DataFrame:
+        return self.df[self.A5_cols].apply(self.A5_parse_and_split_row, axis=1)    
+
+    def A5_features(self, df_split: pd.DataFrame,
+                    cols: Optional[List[str]] = None,
+                    mode: str = 'mu_sigma') -> pd.DataFrame:
+
+        out = pd.DataFrame(index=df_split.index)
+
+        # errors / abnormal
+        out['abnormal_ratio'] = (df_split['n_abnormal'] / df_split['n_trials'])
+        out['n_abnormal']  = df_split['n_abnormal']
+        out['n_corr_ratio'] = df_split['n_correct'] / (df_split['n_correct'] + df_split['n_incorrect'])
+        out['n_non_corr_ratio'] = df_split['n_non_corr'] / df_split['n_non']
+        out['n_pos_corr_ratio'] = df_split['n_pos_corr'] / df_split['n_pos']
+        out['n_color_corr_ratio'] = df_split['n_color_corr'] / df_split['n_color']
+        out['n_shape_corr_ratio'] = df_split['n_shape_corr'] / df_split['n_shape']
+        out['n_non_corr'] = df_split['n_non_corr']
+        out['n_pos_corr'] = df_split['n_pos_corr']
+        out['n_color_corr'] = df_split['n_color_corr']
+        out['n_shape_corr'] = df_split['n_shape_corr'] 
+        out['change_acc_mean'] = out[['n_pos_corr_ratio','n_color_corr_ratio','n_shape_corr_ratio']].mean(axis=1)
+        out['change_vs_non_diff'] = out['change_acc_mean'] - out['n_non_corr_ratio']
+    
+        
+            
+        return out    
+    
+    
+    def A6_7_parse_and_split_row(self, row: pd.Series) -> pd.Series:
+        """
+        
+        """
+        a6_1 = int(row['A6-1'])
+        a7_1 = int(row['A7-1'])
+        
+        return pd.Series({
+            # counts
+            'a6_1': a6_1, 'a7_1': a7_1
+        })
+
+
+    def A6_7_parse_and_split(self) -> pd.DataFrame:
+        return self.df[self.A6_7_cols].apply(self.A6_7_parse_and_split_row, axis=1)    
+
+    def A6_7_features(self, df_split: pd.DataFrame,
+                    cols: Optional[List[str]] = None,
+                    mode: str = 'mu_sigma') -> pd.DataFrame:
+
+        out = pd.DataFrame(index=df_split.index)
+
+        # errors / abnormal
+        out['a6_1_ratio'] = df_split['a6_1'] / 14.0
+        out['a7_1_ratio'] = df_split['a7_1'] / 18.0
+    
+        
+            
+        return out 
+    
+    def A8_9_features(self):
+        cols = ['A8-1', 'A8-2',
+                'A9-1', 'A9-2', 'A9-3', 'A9-4', 'A9-5']
+        existing = [c for c in cols if c in self.df.columns]
+        out = self.df[existing].copy()
+
+        # 수치형 변환 (문자/결측 방어)
+        out = out.apply(pd.to_numeric, errors='coerce')
+
+        # 정규화
+        scaler = StandardScaler()
+        out_scaled = pd.DataFrame(scaler.fit_transform(out), columns=out.columns, index=out.index)
+
+        return out_scaled
 
 A_test = Asample[:5]
 # print(A_test)
 # print(A_test.shape)
 
+print(A_test['A4-3'])
+print(A_test['A4-4'])
+
+
+
+
+# --- Age 파싱 함수 ---
+def parse_age_to_midpoint(x):
+    """
+    '30a' -> 32, '30b' -> 37 규칙 적용.
+    NaN이나 형식이 다르면 np.nan 반환.
+    """
+    if pd.isna(x):
+        return np.nan
+    s = str(x).strip().lower()
+    m = re.fullmatch(r'(\d+)\s*([ab])', s)
+    if m:
+        base = int(m.group(1))
+        tag = m.group(2)
+        offset = 2 if tag == 'a' else 7  # a:+2, b:+7
+        return base + offset
+    # 숫자만 들어온 경우(예: '33')는 그대로 정수 변환 시도
+    if re.fullmatch(r'\d+', s):
+        return int(s)
+    return np.nan
+
+# --- A_age DataFrame 생성 ---
+A_age = pd.DataFrame({
+    'A_age': A_test['Age'].apply(parse_age_to_midpoint).astype('Int64')  # 결측 허용 정수 타입
+})
+
+
+
+
+
+
 pp = Preprocess(A_test)
+
+A1_split = pp.A1_parse_and_split()
+A1_feat = pp.A1_features(A1_split, mode = 'mu_sigma')
 
 A2_split = pp.A2_parse_and_split()
 A2_feat = pp.A2_features(A2_split, mode = 'mu_sigma')
@@ -468,8 +769,118 @@ A2_feat = pp.A2_features(A2_split, mode = 'mu_sigma')
 A3_split = pp.A3_parse_and_split()
 A3_feat = pp.A3_features(A3_split, mode = 'mu_sigma')
 
-print(A2_split.head())
-print(A2_feat.head())
+A4_split = pp.A4_parse_and_split()
+A4_feat = pp.A4_features(A4_split, mode = 'mu_sigma')
+
+A5_split = pp.A5_parse_and_split()
+A5_feat = pp.A5_features(A5_split, mode = 'mu_sigma')
+
+A6_7_split = pp.A6_7_parse_and_split()
+A6_7_feat = pp.A6_7_features(A6_7_split, mode = 'mu_sigma')
+
+A8_9_feat = pp.A8_9_features()
+
+# feature DataFrame들을 리스트로 묶기
+feat_list = [A1_feat, A2_feat, A3_feat, A4_feat, A5_feat]
+feat_names = ['A1', 'A2', 'A3', 'A4', 'A5']
+
+# A1~A5 컬럼명 일괄 변경
+for i, (df, name) in enumerate(zip(feat_list, feat_names), start=1):
+    new_cols = [f'{name}-{j+1}' for j in range(df.shape[1])]
+    df.columns = new_cols
+
+# A6_7_feat은 수동 처리
+A6_7_feat.columns = ['A6-1', 'A7-1']
+
+print(A1_feat.columns)
+print(A2_feat.columns)
+print(A3_feat.columns)
+print(A4_feat.columns)
+print(A5_feat.columns)
+print(A6_7_feat.columns)
+print(A8_9_feat.columns)
+
+print(type(A1_feat))
+print(type(A2_feat))
+print(type(A3_feat))
+print(type(A4_feat))
+print(type(A5_feat))
+print(type(A6_7_feat))
+
+
+
+# --- concat 대상 베이스 컬럼 ---
+base_cols = A_test[['Test_id', 'Test']].reset_index(drop=True)
+
+# --- 피처 DF 인덱스 정렬(안전장치) ---
+dfs = [
+    base_cols,
+    A_age.reset_index(drop=True),
+    A1_feat.reset_index(drop=True),
+    A2_feat.reset_index(drop=True),
+    A3_feat.reset_index(drop=True),
+    A4_feat.reset_index(drop=True),
+    A5_feat.reset_index(drop=True),
+    A6_7_feat.reset_index(drop=True),
+    A8_9_feat.reset_index(drop=True),  # 건드리지 않음
+]
+
+
+
+# --- 최종 병합 ---
+final_df = pd.concat(dfs, axis=1)
+
+# --- 저장 ---
+os.makedirs(OUT_DIR, exist_ok=True)
+out_path = os.path.join(OUT_DIR, "A_test_features.csv")
+final_df.to_csv(out_path, index=False, encoding='utf-8-sig')
+
+print(f"[OK] Saved: {out_path}")
+print(final_df.head())
+
+
+
+
+
+
+
+
+
+data_dict = {
+    'A1_feat': A1_feat,
+    'A2_feat': A2_feat,
+    'A3_feat': A3_feat,
+    'A4_feat': A4_feat,
+    'A5_feat': A5_feat,
+    'A6_7_feat': A6_7_feat,
+}
+
+
+
+num_column = 0
+feat_list = ['A1_feat', 'A2_feat', 'A3_feat', 'A4_feat', 'A5_feat', 'A6_7_feat']
+for item in feat_list:
+    n_item = len(data_dict[item].columns)
+    num_column += n_item
+    
+
+    
+print(num_column)
+
+
+# n_A1 = len(A1_feat.columns)
+
+# print(A_test['A5-1'][0])
+# print(A_test['A5-2'][0])
+# print(A_test['A5-3'][0])
+# print(A6_7_split.head())
+# print(A6_7_feat.head())
+# print(A8_9_feat.head())
+
+
+
+
+
 
 
 
