@@ -1,0 +1,229 @@
+{
+    "tables": {
+        "trainA_positive": {
+            "columns": {
+                "A_age": {
+                    "sdtype": "numerical"
+                },
+                "A1-1": {
+                    "sdtype": "categorical"
+                },
+                "A1-2": {
+                    "sdtype": "categorical"
+                },
+                "A1-3": {
+                    "sdtype": "numerical"
+                },
+                "A1-4": {
+                    "sdtype": "numerical"
+                },
+                "A1-5": {
+                    "sdtype": "numerical"
+                },
+                "A1-6": {
+                    "sdtype": "numerical"
+                },
+                "A1-7": {
+                    "sdtype": "numerical"
+                },
+                "A1-8": {
+                    "sdtype": "numerical"
+                },
+                "A1-9": {
+                    "sdtype": "numerical"
+                },
+                "A2-1": {
+                    "sdtype": "numerical"
+                },
+                "A2-2": {
+                    "sdtype": "numerical"
+                },
+                "A2-3": {
+                    "sdtype": "numerical"
+                },
+                "A2-4": {
+                    "sdtype": "numerical"
+                },
+                "A2-5": {
+                    "sdtype": "numerical"
+                },
+                "A2-6": {
+                    "sdtype": "numerical"
+                },
+                "A2-7": {
+                    "sdtype": "numerical"
+                },
+                "A2-8": {
+                    "sdtype": "numerical"
+                },
+                "A2-9": {
+                    "sdtype": "numerical"
+                },
+                "A2-10": {
+                    "sdtype": "numerical"
+                },
+                "A2-11": {
+                    "sdtype": "numerical"
+                },
+                "A2-12": {
+                    "sdtype": "numerical"
+                },
+                "A3-1": {
+                    "sdtype": "numerical"
+                },
+                "A3-2": {
+                    "sdtype": "numerical"
+                },
+                "A3-3": {
+                    "sdtype": "numerical"
+                },
+                "A3-4": {
+                    "sdtype": "numerical"
+                },
+                "A3-5": {
+                    "sdtype": "numerical"
+                },
+                "A3-6": {
+                    "sdtype": "numerical"
+                },
+                "A3-7": {
+                    "sdtype": "numerical"
+                },
+                "A3-8": {
+                    "sdtype": "numerical"
+                },
+                "A3-9": {
+                    "sdtype": "numerical"
+                },
+                "A4-1": {
+                    "sdtype": "numerical"
+                },
+                "A4-2": {
+                    "sdtype": "numerical"
+                },
+                "A4-3": {
+                    "sdtype": "numerical"
+                },
+                "A4-4": {
+                    "sdtype": "numerical"
+                },
+                "A4-5": {
+                    "sdtype": "numerical"
+                },
+                "A4-6": {
+                    "sdtype": "numerical"
+                },
+                "A4-7": {
+                    "sdtype": "numerical"
+                },
+                "A4-8": {
+                    "sdtype": "numerical"
+                },
+                "A4-9": {
+                    "sdtype": "numerical"
+                },
+                "A4-10": {
+                    "sdtype": "numerical"
+                },
+                "A4-11": {
+                    "sdtype": "numerical"
+                },
+                "A4-12": {
+                    "sdtype": "numerical"
+                },
+                "A4-13": {
+                    "sdtype": "numerical"
+                },
+                "A5-1": {
+                    "sdtype": "categorical"
+                },
+                "A5-2": {
+                    "sdtype": "categorical"
+                },
+                "A5-3": {
+                    "sdtype": "categorical"
+                },
+                "A5-4": {
+                    "sdtype": "categorical"
+                },
+                "A5-5": {
+                    "sdtype": "categorical"
+                },
+                "A5-6": {
+                    "sdtype": "numerical"
+                },
+                "A5-7": {
+                    "sdtype": "categorical"
+                },
+                "A5-8": {
+                    "sdtype": "categorical"
+                },
+                "A5-9": {
+                    "sdtype": "categorical"
+                },
+                "A5-10": {
+                    "sdtype": "numerical"
+                },
+                "A5-11": {
+                    "sdtype": "numerical"
+                },
+                "A5-12": {
+                    "sdtype": "numerical"
+                },
+                "A5-13": {
+                    "sdtype": "numerical"
+                },
+                "A5-14": {
+                    "sdtype": "numerical"
+                },
+                "A5-15": {
+                    "sdtype": "numerical"
+                },
+                "A5-16": {
+                    "sdtype": "numerical"
+                },
+                "A5-17": {
+                    "sdtype": "numerical"
+                },
+                "A5-18": {
+                    "sdtype": "numerical"
+                },
+                "A5-19": {
+                    "sdtype": "numerical"
+                },
+                "A5-20": {
+                    "sdtype": "numerical"
+                },
+                "A6-1": {
+                    "sdtype": "numerical"
+                },
+                "A7-1": {
+                    "sdtype": "numerical"
+                },
+                "A8-1": {
+                    "sdtype": "numerical"
+                },
+                "A8-2": {
+                    "sdtype": "numerical"
+                },
+                "A9-1": {
+                    "sdtype": "numerical"
+                },
+                "A9-2": {
+                    "sdtype": "numerical"
+                },
+                "A9-3": {
+                    "sdtype": "numerical"
+                },
+                "A9-4": {
+                    "sdtype": "numerical"
+                },
+                "A9-5": {
+                    "sdtype": "numerical"
+                }
+            }
+        }
+    },
+    "relationships": [],
+    "METADATA_SPEC_VERSION": "V1"
+}
