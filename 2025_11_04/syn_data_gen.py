@@ -29,7 +29,7 @@ print("load synthesizer")
 synthesizer = load_synthesizer(filepath=synthesizer_load_path)
 print("loading synthesizer complete")
 
-syn_pos_list = [200000, 400000]
+syn_pos_list = [10000, 50000, 100000, 200000, 400000]
 # syn_neg_list = 
 
 for item in syn_pos_list:

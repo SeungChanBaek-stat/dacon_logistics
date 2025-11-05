@@ -6,6 +6,7 @@ from sklearn.model_selection import StratifiedKFold
 import lightgbm as lgb
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
 from functions.Validation import auc_brier_ece
+from itertools import product
 
 curr_path = os.getcwd()
 parent_path = os.path.dirname(curr_path)
@@ -178,94 +179,127 @@ skf = StratifiedKFold(
 # ---------------------------
 fold_indices = []  # 나중에 분석에 쓰고 싶으면 저장
 
-fold_scores = []
 # cpu 사용갯수
-n_jobs = 12
+n_jobs = 16
 
-for fold, (train_idx, valid_idx) in enumerate(skf.split(X_real, y_real), start=1):
-    print(f"\n===== Fold {fold} =====")
-    t0 = time.time()
-    
-    # real 데이터 기준 train/valid 분리
-    X_train_real = X_real.iloc[train_idx].copy()
-    y_train_real = y_real.iloc[train_idx].copy()
-    X_valid_real = X_real.iloc[valid_idx].copy()
-    y_valid_real = y_real.iloc[valid_idx].copy()
-    
-    # print("[real train] shape:", X_train_real.shape, "pos=", (y_train_real == 1).sum(), "neg=", (y_train_real == 0).sum())
-    # print("[real valid] shape:", X_valid_real.shape, "pos=", (y_valid_real == 1).sum(), "neg=", (y_valid_real == 0).sum())
-    
-    # --- 합성 pos를 train에만 붙이기 ---
-    X_train_fold = pd.concat(
-        [X_train_real, X_syn],
-        axis=0,
-        ignore_index=True
-    )
-    y_train_fold = pd.concat(
-        [y_train_real, y_syn],
-        axis=0,
-        ignore_index=True
-    )
-    # # --- 합성 pos 쓰지 않는 경우 ---
-    # X_train_fold, y_train_fold = X_train_real, y_train_real
-    # print("[train + synthetic] shape:", X_train_fold.shape, 
-    #       "pos=", (y_train_fold == 1).sum(), 
-    #       "neg=", (y_train_fold == 0).sum())
-    
-    # 원하면 나중에 다시 쓰려고 index 저장
-    fold_indices.append({
-        "train_idx": train_idx,
-        "valid_idx": valid_idx
-    })
-    
-    # -----------------------------------
+num_leaves_list = [32, 48, 64, 96]
+min_data_in_leaf_list = [100, 150, 200, 250]
 
-    lgb_train = lgb.Dataset(X_train_fold, label=y_train_fold)
-    lgb_valid = lgb.Dataset(X_valid_real, label=y_valid_real, reference=lgb_train)
+results = []
 
-    params = {
-        "objective": "binary",
-        "metric": "auc",         # 모니터링용
-        "learning_rate": 0.05,
-        "num_leaves": 64,
-        "feature_fraction": 0.8,
-        "bagging_fraction": 0.8,
-        "bagging_freq": 1,
-        "seed": 42,
-        "verbosity": -1,
-        "n_jobs": n_jobs
-    }
+for num_leaves, min_data_in_leaf in product(num_leaves_list, min_data_in_leaf_list):
 
-    lgb.early_stopping
+    fold_scores = []
+    for fold, (train_idx, valid_idx) in enumerate(skf.split(X_real, y_real), start=1):
+        print(f"\n===== Fold {fold} =====")
+        t0 = time.time()
+        
+        # real 데이터 기준 train/valid 분리
+        X_train_real = X_real.iloc[train_idx].copy()
+        y_train_real = y_real.iloc[train_idx].copy()
+        X_valid_real = X_real.iloc[valid_idx].copy()
+        y_valid_real = y_real.iloc[valid_idx].copy()
+        
+        # print("[real train] shape:", X_train_real.shape, "pos=", (y_train_real == 1).sum(), "neg=", (y_train_real == 0).sum())
+        # print("[real valid] shape:", X_valid_real.shape, "pos=", (y_valid_real == 1).sum(), "neg=", (y_valid_real == 0).sum())
+        
+        # --- 합성 pos를 train에만 붙이기 ---
+        X_train_fold = pd.concat(
+            [X_train_real, X_syn],
+            axis=0,
+            ignore_index=True
+        )
+        y_train_fold = pd.concat(
+            [y_train_real, y_syn],
+            axis=0,
+            ignore_index=True
+        )
+        # # --- 합성 pos 쓰지 않는 경우 ---
+        # X_train_fold, y_train_fold = X_train_real, y_train_real
+        # print("[train + synthetic] shape:", X_train_fold.shape, 
+        #       "pos=", (y_train_fold == 1).sum(), 
+        #       "neg=", (y_train_fold == 0).sum())
+        
+        # 원하면 나중에 다시 쓰려고 index 저장
+        fold_indices.append({
+            "train_idx": train_idx,
+            "valid_idx": valid_idx
+        })
+        
+        # -----------------------------------
 
-    model = lgb.train(
-        params,
-        lgb_train,
-        num_boost_round=1000,
-        valid_sets=[lgb_valid],
-        valid_names=['valid'],
-        # **lgb.callback = [lgb.early_stopping(stopping_rounds=50), lgb.log_evaluation(50)]**
-        callbacks = [lgb.log_evaluation(500)]
-        # early_stopping_rounds=???  # 쓸지 말지는 우리가 결정
-    )
+        lgb_train = lgb.Dataset(X_train_fold, label=y_train_fold)
+        lgb_valid = lgb.Dataset(X_valid_real, label=y_valid_real, reference=lgb_train)
 
-    # 4) 검증셋 확률 예측
-    y_pred_proba = model.predict(X_valid_real)  # 0~1 확률
-    
-    # 5) 대회 메트릭 계산
-    answer_df = pd.DataFrame({
-        "id": np.arange(len(y_valid_real)),
-        "Label": y_valid_real.values.astype(int)
-    })
-    
-    submission_df = pd.DataFrame({
-        "id": np.arange(len(y_pred_proba)),
-        "Label": y_pred_proba.astype(float)
-    })
-    
-    fold_score = auc_brier_ece(answer_df, submission_df)
-    print(f"Fold {fold} combined score: {fold_score:.6f}, elapsed : {time.time()-t0:.3f}s")
-    fold_scores.append(fold_score)
+        params = {
+            "objective": "binary",
+            "metric": "auc",         # 모니터링용
+            "learning_rate": 0.05,
+            "num_leaves": num_leaves,
+            "min_data_in_leaf": min_data_in_leaf, # ← 여기 추가
+            "feature_fraction": 0.8,
+            "bagging_fraction": 0.8,
+            "bagging_freq": 1,
+            "seed": 42,
+            "verbosity": -1,
+            "n_jobs": n_jobs
+        }
 
-print("\nCV mean combined score:", np.mean(fold_scores))
-print("CV std combined score :", np.std(fold_scores))
+
+        model = lgb.train(
+            params,
+            lgb_train,
+            num_boost_round=1000,
+            valid_sets=[lgb_valid],
+            valid_names=['valid'],
+            # **lgb.callback = [lgb.early_stopping(stopping_rounds=50), lgb.log_evaluation(50)]**
+            # , lgb.early_stopping(stopping_rounds=100)
+            callbacks = [lgb.log_evaluation(100), lgb.early_stopping(stopping_rounds=100)]
+            # early_stopping_rounds=???  # 쓸지 말지는 우리가 결정
+        )
+
+        # 4) 검증셋 확률 예측
+        y_pred_proba = model.predict(X_valid_real, num_iteration=model.best_iteration)  # 0~1 확률
+        
+        # 5) 대회 메트릭 계산
+        answer_df = pd.DataFrame({
+            "id": np.arange(len(y_valid_real)),
+            "Label": y_valid_real.values.astype(int)
+        })
+        
+        submission_df = pd.DataFrame({
+            "id": np.arange(len(y_pred_proba)),
+            "Label": y_pred_proba.astype(float)
+        })
+        
+        fold_score = auc_brier_ece(answer_df, submission_df)
+        print(f"Fold {fold} combined score: {fold_score:.6f}, elapsed : {time.time()-t0:.3f}s")
+        fold_scores.append(fold_score)
+
+    mean_score = np.mean(fold_scores)
+    std_score = np.std(fold_scores)
+    results.append((num_leaves, min_data_in_leaf, mean_score, std_score))
+    print(f"[num_leaves={num_leaves}, min_data_in_leaf={min_data_in_leaf}] mean score: {mean_score:.6f}, std score: {std_score:.6f}")
+
+
+
+# === 모든 실험 끝난 후 ===
+results_df = pd.DataFrame(results, columns=["num_leaves", "min_data_in_leaf", "mean_score", "std_score"])
+
+# mean_score 기준 오름차순 정렬 (즉, 낮을수록 좋은 점수)
+results_df = results_df.sort_values("mean_score", ascending=True).reset_index(drop=True)
+
+print("\n===== CV 결과 요약 =====")
+print(results_df.to_string(index=False, float_format="%.6f"))
+
+# best hyperparameter 출력
+best_row = results_df.iloc[0]
+print(f"\n✅ Best params → num_leaves={int(best_row.num_leaves)}, min_data_in_leaf={int(best_row.min_data_in_leaf)} "
+      f"| mean_score={best_row.mean_score:.6f} | std={best_row.std_score:.6f}")
+
+# 결과 CSV로 저장 (선택사항)
+OUT_DIR = os.path.join(curr_path, "output")
+os.makedirs(OUT_DIR, exist_ok=True)
+csv_path = os.path.join(OUT_DIR, "lgb_cv_results.csv")
+results_df.to_csv(csv_path, index=False, encoding="utf-8-sig")
+print(f"\n결과 저장 완료: {csv_path}")
