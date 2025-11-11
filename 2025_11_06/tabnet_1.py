@@ -287,7 +287,6 @@ def main():
 
     clf = TabNetClassifier(**tabnet_params)
 
-
     max_epochs = 300  # 그로킹 맛보기는 300부터 시작하여 나중에 늘려도 됨
     patience = 50
 
@@ -304,8 +303,8 @@ def main():
         max_epochs=max_epochs,
         patience=patience,
         batch_size=4096,
-        virtual_batch_size=256,
-        num_workers=6,
+        virtual_batch_size=512,
+        num_workers=0,
         weights=1,       # 예제에서는 1 → class weight 안 씀
         drop_last=False,
         augmentations=aug,
