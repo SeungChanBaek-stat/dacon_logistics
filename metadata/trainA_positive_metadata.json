@@ -131,11 +131,8 @@
                 "A4-12": {
                     "sdtype": "numerical"
                 },
-                "A4-13": {
-                    "sdtype": "numerical"
-                },
                 "A5-1": {
-                    "sdtype": "categorical"
+                    "sdtype": "numerical"
                 },
                 "A5-2": {
                     "sdtype": "categorical"
@@ -147,19 +144,19 @@
                     "sdtype": "categorical"
                 },
                 "A5-5": {
-                    "sdtype": "categorical"
+                    "sdtype": "numerical"
                 },
                 "A5-6": {
                     "sdtype": "numerical"
                 },
                 "A5-7": {
-                    "sdtype": "categorical"
+                    "sdtype": "numerical"
                 },
                 "A5-8": {
-                    "sdtype": "categorical"
+                    "sdtype": "numerical"
                 },
                 "A5-9": {
-                    "sdtype": "categorical"
+                    "sdtype": "numerical"
                 },
                 "A5-10": {
                     "sdtype": "numerical"
@@ -179,21 +176,6 @@
                 "A5-15": {
                     "sdtype": "numerical"
                 },
-                "A5-16": {
-                    "sdtype": "numerical"
-                },
-                "A5-17": {
-                    "sdtype": "numerical"
-                },
-                "A5-18": {
-                    "sdtype": "numerical"
-                },
-                "A5-19": {
-                    "sdtype": "numerical"
-                },
-                "A5-20": {
-                    "sdtype": "numerical"
-                },
                 "A6-1": {
                     "sdtype": "numerical"
                 },
@@ -204,7 +186,7 @@
                     "sdtype": "numerical"
                 },
                 "A8-2": {
-                    "sdtype": "numerical"
+                    "sdtype": "categorical"
                 },
                 "A9-1": {
                     "sdtype": "numerical"

@@ -543,7 +543,7 @@ class PreprocessA:
         # 최종 DataFrame 구성
         out = pd.DataFrame({
             'n_incorrect': n_incorrect,
-            'n_abnormal': n_abnormal,
+            # 'n_abnormal': n_abnormal,
             'con_red_corr_ratio': con_red_corr_ratio,
             'incon_red_corr_ratio': incon_red_corr_ratio,
             'con_green_corr_ratio': con_green_corr_ratio,
@@ -630,8 +630,10 @@ class PreprocessA:
 
         # DataFrame 구성
         out = pd.DataFrame({
+            ### 전처리시에 전부 같게 나오는 값들
             'n_trials': n_trials,
             'n_non': n_non, 'n_pos': n_pos, 'n_color': n_color, 'n_shape': n_shape,
+            ## 이 값들은 괜찮다
             'n_non_corr': n_non_corr, 'n_pos_corr': n_pos_corr, 'n_color_corr': n_color_corr, 'n_shape_corr': n_shape_corr,
             'n_correct': n_correct, 'n_incorrect': n_incorrect, 'n_abnormal': n_abnormal,
         }, index=self.df.index)
@@ -648,6 +650,7 @@ class PreprocessA:
         out['change_acc_mean']   = out[['n_pos_corr_ratio','n_color_corr_ratio','n_shape_corr_ratio']].mean(axis=1)
         out['change_vs_non_diff'] = out['change_acc_mean'] - out['n_non_corr_ratio']
 
+        out = out.drop(columns=['n_trials', 'n_non', 'n_pos', 'n_color', 'n_shape'])
         return out
     
 
@@ -685,9 +688,7 @@ class PreprocessA:
         # 수치형 변환 (문자/결측 방어)
         out = out.apply(pd.to_numeric, errors='coerce')
 
-        # 정규화
-        scaler = StandardScaler()
-        out_scaled = pd.DataFrame(scaler.fit_transform(out), columns=out.columns, index=out.index)
+        out_scaled = pd.DataFrame(out, columns=out.columns, index=out.index)
 
         return out_scaled
     
@@ -959,15 +960,16 @@ class PreprocessB:
             'B1_3_4_sum': b1_3_4_sum_list,
             
             'B1_rt_t2_corr_mean': rt_t2_corr_mean,
-            'B1_rt_t2_inc_mean':  rt_t2_inc_mean,
+            # 'B1_rt_t2_inc_mean':  rt_t2_inc_mean,
             f'B1_rt_t2_corr_{mode}': rt_t2_corr_summ,
-            f'B1_rt_t2_inc_{mode}':  rt_t2_inc_summ,
-            'B1_rt_t2_corr_minus_inc_mean': rt_t2_corr_minus_inc_mean,
-            f'B1_rt_t2_corr_minus_inc_{mode}': rt_t2_corr_minus_inc_summ,
+            # f'B1_rt_t2_inc_{mode}':  rt_t2_inc_summ,
+            ## 이러한 마이너스 term은 nan값들을 많이 만들어내고, 합성데이터 생성도 잘되지않는것 같다. 그러니 걍 삭제하자
+            # 'B1_rt_t2_corr_minus_inc_mean': rt_t2_corr_minus_inc_mean,
+            # f'B1_rt_t2_corr_minus_inc_{mode}': rt_t2_corr_minus_inc_summ,
         }
 
-        # B1-3 값(1~4)별
-        for k in (1, 2, 3, 4):
+        # B1-3 값(1~4)별 # 4는 제외 : 의미없어보임
+        for k in (1, 2, 3):
             data[f'B1_rt_t2_{k}_mean'] = rt_t2_mean[k]
             data[f'B1_rt_t2_{k}_{mode}'] = rt_t2_summ[k]
 
@@ -1146,16 +1148,17 @@ class PreprocessB:
             'B2_3_3_sum': b2_3_3_sum_list,
             'B2_3_4_sum': b2_3_4_sum_list,
             
-            'B1_rt_t2_corr_mean': rt_t2_corr_mean,
-            'B1_rt_t2_inc_mean':  rt_t2_inc_mean,
-            f'B1_rt_t2_corr_{mode}': rt_t2_corr_summ,
-            f'B1_rt_t2_inc_{mode}':  rt_t2_inc_summ,
-            'B1_rt_t2_corr_minus_inc_mean': rt_t2_corr_minus_inc_mean,
-            f'B1_rt_t2_corr_minus_inc_{mode}': rt_t2_corr_minus_inc_summ,
+            'B2_rt_t2_corr_mean': rt_t2_corr_mean,
+            # 'B2_rt_t2_inc_mean':  rt_t2_inc_mean,
+            f'B2_rt_t2_corr_{mode}': rt_t2_corr_summ,
+            # f'B2_rt_t2_inc_{mode}':  rt_t2_inc_summ,
+            ## 이러한 마이너스 term은 nan값들을 많이 만들어내고, 합성데이터 생성도 잘되지않는것 같다. 그러니 걍 삭제하자
+            # 'B1_rt_t2_corr_minus_inc_mean': rt_t2_corr_minus_inc_mean,
+            # f'B1_rt_t2_corr_minus_inc_{mode}': rt_t2_corr_minus_inc_summ,
         }
 
-        # B1-3 값(1~4)별
-        for k in (1, 2, 3, 4):
+        # B1-3 값(1~4)별 # 4는 의미없어보인다
+        for k in (1, 2, 3):
             data[f'B2_rt_t2_{k}_mean'] = rt_t2_mean[k]
             data[f'B2_rt_t2_{k}_{mode}'] = rt_t2_summ[k]
 
@@ -1273,7 +1276,7 @@ class PreprocessB:
 
         out = pd.DataFrame({
             'B3_n_correct': n_corr_list,
-            'B3_n_incorrect': n_inc_list,
+            # 'B3_n_incorrect': n_inc_list,
             'B3_correct_rate': corr_rate_list,
 
             'B3_rt_all_mean': rt_all_mean,
@@ -1282,10 +1285,11 @@ class PreprocessB:
             'B3_rt_correct_mean': rt_corr_mean,
             f'B3_rt_correct_{mode}': rt_corr_summ,
 
-            'B3_rt_incorrect_mean': rt_inc_mean,
-            f'B3_rt_incorrect_{mode}': rt_inc_summ,
+            # 'B3_rt_incorrect_mean': rt_inc_mean,
+            # f'B3_rt_incorrect_{mode}': rt_inc_summ,
 
-            'B3_rt_err_minus_corr': rt_err_minus_corr,
+            ## 이러한 마이너스 term은 nan값들을 많이 만들어내고, 합성데이터 생성도 잘되지않는것 같다. 그러니 걍 삭제하자
+            # 'B3_rt_err_minus_corr': rt_err_minus_corr,
         }, index=self.df.index)
         
         # === RT 관련 피처 NaN → -1 치환 (조합이 한 번도 없었던 경우) ===
@@ -1410,8 +1414,9 @@ class PreprocessB:
             'B4_rt_icg_incorr_mean': icg_inc_mean,
             f'B4_rt_icg_incorr_{mode}': icg_inc_summ,
 
-            'B4_icg_minus_cg_mean': icg_minus_cg_mean,
-            f'B4_icg_minus_cg_{mode}': icg_minus_cg_summ,
+            ## 이러한 마이너스 term은 nan값들을 많이 만들어내고, 합성데이터 생성도 잘되지않는것 같다. 그러니 걍 삭제하자
+            # 'B4_icg_minus_cg_mean': icg_minus_cg_mean,
+            # f'B4_icg_minus_cg_{mode}': icg_minus_cg_summ,
         }
 
         for k in (3,4,5,6):
@@ -1543,7 +1548,8 @@ class PreprocessB:
             'B5_rt_incorrect_mean': rt_inc_mean,
             f'B5_rt_incorrect_{mode}': rt_inc_summ,
 
-            'B5_rt_err_minus_corr': rt_err_minus_corr,
+            ## 이러한 마이너스 term은 nan값들을 많이 만들어내고, 합성데이터 생성도 잘되지않는것 같다. 그러니 걍 삭제하자
+            # 'B5_rt_err_minus_corr': rt_err_minus_corr,
         }, index=self.df.index)
         
         # === RT 관련 피처 NaN → -1 치환 (조합이 한 번도 없었던 경우) ===
@@ -1608,7 +1614,8 @@ class PreprocessB:
             f'{prefix}_n_incorrect':     n_inc_list,
             f'{prefix}_correct_ratio':   corr_ratio_list,
             f'{prefix}_incorrect_ratio': inc_ratio_list,
-            f'{prefix}_corr_minus_inc':  diff_list,
+            ## 이러한 마이너스 term은 nan값들을 많이 만들어내고, 합성데이터 생성도 잘되지않는것 같다. 그러니 걍 삭제하자
+            # f'{prefix}_corr_minus_inc':  diff_list,
         }, index=self.df.index)
 
         return out

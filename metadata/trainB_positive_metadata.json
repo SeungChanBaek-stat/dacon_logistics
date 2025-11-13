@@ -1,0 +1,277 @@
+{
+    "tables": {
+        "trainB_positive": {
+            "columns": {
+                "B_age": {
+                    "sdtype": "categorical"
+                },
+                "B1-1": {
+                    "sdtype": "numerical"
+                },
+                "B1-2": {
+                    "sdtype": "numerical"
+                },
+                "B1-3": {
+                    "sdtype": "numerical"
+                },
+                "B1-4": {
+                    "sdtype": "numerical"
+                },
+                "B1-5": {
+                    "sdtype": "categorical"
+                },
+                "B1-6": {
+                    "sdtype": "categorical"
+                },
+                "B1-7": {
+                    "sdtype": "categorical"
+                },
+                "B1-8": {
+                    "sdtype": "categorical"
+                },
+                "B1-9": {
+                    "sdtype": "numerical"
+                },
+                "B1-10": {
+                    "sdtype": "numerical"
+                },
+                "B1-11": {
+                    "sdtype": "numerical"
+                },
+                "B1-12": {
+                    "sdtype": "numerical"
+                },
+                "B1-13": {
+                    "sdtype": "numerical"
+                },
+                "B1-14": {
+                    "sdtype": "numerical"
+                },
+                "B1-15": {
+                    "sdtype": "numerical"
+                },
+                "B1-16": {
+                    "sdtype": "numerical"
+                },
+                "B2-1": {
+                    "sdtype": "numerical"
+                },
+                "B2-2": {
+                    "sdtype": "numerical"
+                },
+                "B2-3": {
+                    "sdtype": "numerical"
+                },
+                "B2-4": {
+                    "sdtype": "numerical"
+                },
+                "B2-5": {
+                    "sdtype": "categorical"
+                },
+                "B2-6": {
+                    "sdtype": "categorical"
+                },
+                "B2-7": {
+                    "sdtype": "categorical"
+                },
+                "B2-8": {
+                    "sdtype": "categorical"
+                },
+                "B2-9": {
+                    "sdtype": "numerical"
+                },
+                "B2-10": {
+                    "sdtype": "numerical"
+                },
+                "B2-11": {
+                    "sdtype": "numerical"
+                },
+                "B2-12": {
+                    "sdtype": "numerical"
+                },
+                "B2-13": {
+                    "sdtype": "numerical"
+                },
+                "B2-14": {
+                    "sdtype": "numerical"
+                },
+                "B2-15": {
+                    "sdtype": "numerical"
+                },
+                "B2-16": {
+                    "sdtype": "numerical"
+                },
+                "B3-1": {
+                    "sdtype": "numerical"
+                },
+                "B3-2": {
+                    "sdtype": "numerical"
+                },
+                "B3-3": {
+                    "sdtype": "numerical"
+                },
+                "B3-4": {
+                    "sdtype": "numerical"
+                },
+                "B3-5": {
+                    "sdtype": "numerical"
+                },
+                "B3-6": {
+                    "sdtype": "numerical"
+                },
+                "B4-1": {
+                    "sdtype": "numerical"
+                },
+                "B4-2": {
+                    "sdtype": "numerical"
+                },
+                "B4-3": {
+                    "sdtype": "numerical"
+                },
+                "B4-4": {
+                    "sdtype": "numerical"
+                },
+                "B4-5": {
+                    "sdtype": "numerical"
+                },
+                "B4-6": {
+                    "sdtype": "numerical"
+                },
+                "B4-7": {
+                    "sdtype": "numerical"
+                },
+                "B4-8": {
+                    "sdtype": "numerical"
+                },
+                "B4-9": {
+                    "sdtype": "numerical"
+                },
+                "B4-10": {
+                    "sdtype": "numerical"
+                },
+                "B4-11": {
+                    "sdtype": "numerical"
+                },
+                "B4-12": {
+                    "sdtype": "numerical"
+                },
+                "B4-13": {
+                    "sdtype": "numerical"
+                },
+                "B4-14": {
+                    "sdtype": "numerical"
+                },
+                "B4-15": {
+                    "sdtype": "numerical"
+                },
+                "B4-16": {
+                    "sdtype": "numerical"
+                },
+                "B4-17": {
+                    "sdtype": "numerical"
+                },
+                "B4-18": {
+                    "sdtype": "numerical"
+                },
+                "B5-1": {
+                    "sdtype": "numerical"
+                },
+                "B5-2": {
+                    "sdtype": "numerical"
+                },
+                "B5-3": {
+                    "sdtype": "numerical"
+                },
+                "B5-4": {
+                    "sdtype": "numerical"
+                },
+                "B5-5": {
+                    "sdtype": "numerical"
+                },
+                "B5-6": {
+                    "sdtype": "numerical"
+                },
+                "B5-7": {
+                    "sdtype": "numerical"
+                },
+                "B5-8": {
+                    "sdtype": "numerical"
+                },
+                "B5-9": {
+                    "sdtype": "numerical"
+                },
+                "B6-1": {
+                    "sdtype": "numerical"
+                },
+                "B6-2": {
+                    "sdtype": "numerical"
+                },
+                "B6-3": {
+                    "sdtype": "numerical"
+                },
+                "B6-4": {
+                    "sdtype": "numerical"
+                },
+                "B7-1": {
+                    "sdtype": "numerical"
+                },
+                "B7-2": {
+                    "sdtype": "numerical"
+                },
+                "B7-3": {
+                    "sdtype": "numerical"
+                },
+                "B7-4": {
+                    "sdtype": "numerical"
+                },
+                "B8-1": {
+                    "sdtype": "categorical"
+                },
+                "B8-2": {
+                    "sdtype": "categorical"
+                },
+                "B8-3": {
+                    "sdtype": "numerical"
+                },
+                "B8-4": {
+                    "sdtype": "numerical"
+                },
+                "B9-1": {
+                    "sdtype": "numerical"
+                },
+                "B9-2": {
+                    "sdtype": "numerical"
+                },
+                "B9-3": {
+                    "sdtype": "numerical"
+                },
+                "B9-4": {
+                    "sdtype": "numerical"
+                },
+                "B9-5": {
+                    "sdtype": "numerical"
+                },
+                "B10-1": {
+                    "sdtype": "numerical"
+                },
+                "B10-2": {
+                    "sdtype": "numerical"
+                },
+                "B10-3": {
+                    "sdtype": "numerical"
+                },
+                "B10-4": {
+                    "sdtype": "numerical"
+                },
+                "B10-5": {
+                    "sdtype": "numerical"
+                },
+                "B10-6": {
+                    "sdtype": "numerical"
+                }
+            }
+        }
+    },
+    "relationships": [],
+    "METADATA_SPEC_VERSION": "V1"
+}
